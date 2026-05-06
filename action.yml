@@ -1,0 +1,149 @@
+name: 'Update Packmind Artifacts'
+author: 'PackmindHub'
+description: 'Run packmind-cli install on a working branch and open (or update) a pull request with the latest Packmind playbook artifacts.'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'blue'
+
+inputs:
+  packmind-api-key:
+    description: 'API key for Packmind. Pass as a secret (PACKMIND_API_KEY_V3).'
+    required: true
+  github-token:
+    description: 'Token used to push the working branch and open the pull request. Defaults to the workflow token.'
+    required: false
+    default: ${{ github.token }}
+  branch-name:
+    description: 'Working branch for the artifact update. Created if missing, otherwise reused and merged with the base branch.'
+    required: false
+    default: 'packmind-cli-update'
+  base-branch:
+    description: 'Base branch the pull request targets and that the working branch is merged from.'
+    required: false
+    default: 'main'
+  node-version:
+    description: 'Node.js version installed before running packmind-cli.'
+    required: false
+    default: '22.17.0'
+  commit-message:
+    description: 'Commit message used when artifacts changed.'
+    required: false
+    default: 'chore(packmind): nightly artifacts update'
+  pr-title:
+    description: 'Title for the pull request when one is opened. Falls back to commit-message when empty.'
+    required: false
+    default: ''
+  pr-body:
+    description: 'Body for the pull request when one is opened.'
+    required: false
+    default: |
+      Automated update of Packmind artifacts via `packmind-cli install`. Review the diff under `.packmind/` and `packmind-lock.json`.
+  git-user-name:
+    description: 'Git user.name used for the commit.'
+    required: false
+    default: 'packmind-bot'
+  git-user-email:
+    description: 'Git user.email used for the commit.'
+    required: false
+    default: 'packmind-bot@users.noreply.github.com'
+
+outputs:
+  changed:
+    description: 'Whether artifacts changed. "true" or "false".'
+    value: ${{ steps.diff.outputs.changed }}
+  pr-url:
+    description: 'URL of the pull request associated with the working branch (newly created or already open).'
+    value: ${{ steps.pr.outputs.url }}
+  pr-number:
+    description: 'Number of the pull request associated with the working branch (newly created or already open).'
+    value: ${{ steps.pr.outputs.number }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install @packmind/cli globally
+      shell: bash
+      run: npm install -g @packmind/cli
+
+    - name: Configure git and switch to working branch
+      shell: bash
+      env:
+        BRANCH_NAME: ${{ inputs.branch-name }}
+        BASE_BRANCH: ${{ inputs.base-branch }}
+        GIT_USER_NAME: ${{ inputs.git-user-name }}
+        GIT_USER_EMAIL: ${{ inputs.git-user-email }}
+      run: |
+        git config user.name "$GIT_USER_NAME"
+        git config user.email "$GIT_USER_EMAIL"
+        if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+          git fetch origin "$BRANCH_NAME"
+          git checkout "$BRANCH_NAME"
+          git merge --no-edit "origin/$BASE_BRANCH" || true
+        else
+          git checkout -b "$BRANCH_NAME"
+        fi
+
+    - name: Run packmind-cli install
+      shell: bash
+      env:
+        PACKMIND_API_KEY_V3: ${{ inputs.packmind-api-key }}
+      run: packmind-cli install
+
+    - name: Detect changes
+      id: diff
+      shell: bash
+      run: |
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          echo "No artifact changes — skipping commit/PR."
+        else
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+        fi
+
+    - name: Commit and push changes
+      if: steps.diff.outputs.changed == 'true'
+      shell: bash
+      env:
+        BRANCH_NAME: ${{ inputs.branch-name }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+      run: |
+        git add -A
+        git commit -m "$COMMIT_MESSAGE"
+        git push origin "$BRANCH_NAME"
+
+    - name: Open or report pull request
+      id: pr
+      if: steps.diff.outputs.changed == 'true'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        BRANCH_NAME: ${{ inputs.branch-name }}
+        BASE_BRANCH: ${{ inputs.base-branch }}
+        COMMIT_MESSAGE: ${{ inputs.commit-message }}
+        PR_TITLE: ${{ inputs.pr-title }}
+        PR_BODY: ${{ inputs.pr-body }}
+      run: |
+        existing=$(gh pr list --head "$BRANCH_NAME" --state open --json number,url --jq '.[0] // empty')
+        if [ -z "$existing" ]; then
+          title="$PR_TITLE"
+          if [ -z "$title" ]; then
+            title="$COMMIT_MESSAGE"
+          fi
+          url=$(gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$BRANCH_NAME" \
+            --title "$title" \
+            --body "$PR_BODY")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "number=$(gh pr view "$url" --json number --jq '.number')" >> "$GITHUB_OUTPUT"
+        else
+          echo "url=$(echo "$existing" | jq -r '.url')" >> "$GITHUB_OUTPUT"
+          echo "number=$(echo "$existing" | jq -r '.number')" >> "$GITHUB_OUTPUT"
+          echo "An open PR already exists for $BRANCH_NAME; new commits were appended to it."
+        fi
