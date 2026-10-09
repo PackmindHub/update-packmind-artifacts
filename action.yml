@@ -1,6 +1,6 @@
 name: 'Update Packmind Artifacts'
 author: 'PackmindHub'
-description: 'Run packmind-cli install on a working branch and open (or update) a pull request with the latest Packmind playbook artifacts.'
+description: 'Run packmind install on a working branch and open (or update) a pull request with the latest Packmind playbook artifacts.'
 
 branding:
   icon: 'refresh-cw'
@@ -8,7 +8,7 @@ branding:
 
 inputs:
   packmind-api-key:
-    description: 'API key for Packmind. Pass as a secret. Exported to packmind-cli as PACKMIND_API_KEY.'
+    description: 'API key for Packmind. Pass as a secret. Exported to packmind as PACKMIND_API_KEY.'
     required: true
   github-token:
     description: 'Token used to push the working branch and open the pull request. Defaults to the workflow token.'
@@ -27,7 +27,7 @@ inputs:
     required: false
     default: 'false'
   node-version:
-    description: 'Node.js version installed before running packmind-cli.'
+    description: 'Node.js version installed before running packmind.'
     required: false
     default: '22.17.0'
   commit-message:
@@ -42,7 +42,7 @@ inputs:
     description: 'Body for the pull request when one is opened.'
     required: false
     default: |
-      Automated update of Packmind artifacts via `packmind-cli install`. Review the diff under `.packmind/` and `packmind-lock.json`.
+      Automated update of Packmind artifacts via `packmind install`. Review the diff under `.packmind/` and `packmind-lock.json`.
   git-user-name:
     description: 'Git user.name used for the commit.'
     required: false
@@ -93,7 +93,7 @@ runs:
           git checkout -b "$BRANCH_NAME"
         fi
 
-    - name: Run packmind-cli install
+    - name: Run packmind install
       shell: bash
       env:
         PACKMIND_API_KEY: ${{ inputs.packmind-api-key }}
@@ -102,9 +102,9 @@ runs:
         UPGRADE: ${{ inputs.upgrade }}
       run: |
         if [ "$UPGRADE" = "true" ]; then
-          packmind-cli install --upgrade
+          packmind install --upgrade
         else
-          packmind-cli install
+          packmind install
         fi
 
     - name: Detect changes
