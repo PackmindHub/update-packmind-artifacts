@@ -22,6 +22,10 @@ inputs:
     description: 'Base branch the pull request targets and that the working branch is merged from.'
     required: false
     default: 'main'
+  upgrade:
+    description: 'When "true", runs packmind-cli install --upgrade to bump installed packages to their latest versions (requires @packmind/cli >= 0.37.0). When "false", installs the versions already pinned in packmind-lock.json.'
+    required: false
+    default: 'false'
   node-version:
     description: 'Node.js version installed before running packmind-cli.'
     required: false
@@ -95,7 +99,13 @@ runs:
         PACKMIND_API_KEY: ${{ inputs.packmind-api-key }}
         # Legacy name, only read by @packmind/cli < 0.32.0.
         PACKMIND_API_KEY_V3: ${{ inputs.packmind-api-key }}
-      run: packmind-cli install
+        UPGRADE: ${{ inputs.upgrade }}
+      run: |
+        if [ "$UPGRADE" = "true" ]; then
+          packmind-cli install --upgrade
+        else
+          packmind-cli install
+        fi
 
     - name: Detect changes
       id: diff
