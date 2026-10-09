@@ -1,6 +1,6 @@
 # Update Packmind Artifacts
 
-A GitHub Action that runs `packmind-cli install` on a working branch in your repository and opens (or updates) a pull request with the latest Packmind playbook artifacts (standards, commands, skills).
+A GitHub Action that runs `packmind install` on a working branch in your repository and opens (or updates) a pull request with the latest Packmind playbook artifacts (standards, commands, skills).
 
 Designed for nightly automation: schedule it on a cron, the action will only commit and open a PR when artifacts actually changed.
 
@@ -47,7 +47,7 @@ The action invokes the GitHub CLI (`gh`) and `jq`. They are pre-installed on Git
 | `github-token`     | no       | `${{ github.token }}`                                    | Token used to push the working branch and open the pull request.                         |
 | `branch-name`      | no       | `packmind-cli-update`                                    | Working branch. Created if missing, otherwise reused and merged with the base branch.    |
 | `base-branch`      | no       | `main`                                                   | Base branch the pull request targets and that the working branch is merged from.         |
-| `node-version`     | no       | `22.17.0`                                                | Node.js version installed before running `packmind-cli`.                                 |
+| `node-version`     | no       | `22.17.0`                                                | Node.js version installed before running `packmind`.                                     |
 | `commit-message`   | no       | `chore(packmind): nightly artifacts update`              | Commit message used when artifacts changed.                                              |
 | `pr-title`         | no       | _(falls back to `commit-message`)_                       | Title for the pull request when one is opened.                                           |
 | `pr-body`          | no       | _(see `action.yml`)_                                     | Body for the pull request when one is opened.                                            |
