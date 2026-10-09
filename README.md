@@ -32,7 +32,7 @@ jobs:
       - name: Update Packmind artifacts
         uses: PackmindHub/update-packmind-artifacts@v1
         with:
-          packmind-api-key: ${{ secrets.PACKMIND_API_KEY_V3 }}
+          packmind-api-key: ${{ secrets.PACKMIND_API_KEY }}
 ```
 
 ### Self-hosted runners
