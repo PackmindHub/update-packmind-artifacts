@@ -9,12 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add possibility to select if distributed packages are upgraded or not.
 - This changelog
+
+### Changed
+
+### Deprecated
+
+### Removed
 
 ### Fixed
 
 - An old `PACKMIND_API_KEY_V3` environment variable was still referenced in the README.
+
+### Security
 
 ## [v1.0.1] 2026-07-28
 
