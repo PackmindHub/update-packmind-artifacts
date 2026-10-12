@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Update Packmind artifacts
-        uses: PackmindHub/update-packmind-artifacts@v1
+        uses: PackmindHub/update-packmind-artifacts@v1.2.0
         with:
           packmind-api-key: ${{ secrets.PACKMIND_API_KEY }}
           upgrade: ${{ inputs.upgrade || false }}
