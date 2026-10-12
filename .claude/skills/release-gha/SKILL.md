@@ -1,6 +1,6 @@
 ---
 name: release-gha
-description: 'Release a new version of the update-packmind-artifacts GitHub Action: finalize the CHANGELOG [Unreleased] section as [vX.Y.Z] with today''s date, commit "[Chore] Prepare release", tag vX.Y.Z, push main and the tag, then reopen an empty [Unreleased] section and commit/push "[Chore] Post release vX.Y.Z". Use when the user asks to release, publish or tag a new version of the action.'
+description: 'Release a new version of the update-packmind-artifacts GitHub Action: finalize the CHANGELOG [Unreleased] section as [vX.Y.Z] with today''s date, point the README usage example at @vX.Y.Z, commit "[Chore] Prepare release", tag vX.Y.Z, push main and the tag, then reopen an empty [Unreleased] section and commit/push "[Chore] Post release vX.Y.Z". Use when the user asks to release, publish or tag a new version of the action.'
 ---
 
 Release version `{{version}}` (format `vX.Y.Z`, e.g. `v1.1.0`) of this GitHub Action.
@@ -34,12 +34,23 @@ This:
 * renames `## [Unreleased]` to `## [{{version}}] {{today}}`,
 * removes the `[Unreleased]: …` link definition and appends `[{{version}}]: https://github.com/PackmindHub/update-packmind-artifacts/compare/<previous>...{{version}}` at the end of the file.
 
-It refuses to run if `[Unreleased]` has no entries or if `{{version}}` is already in the changelog. Show the user `git diff CHANGELOG.md` before committing.
+It refuses to run if `[Unreleased]` has no entries or if `{{version}}` is already in the changelog.
 
-## 3. Commit, tag and push the release
+## 3. Update the README usage example
+
+Point the workflow example in `README.md` at the version being released:
 
 ```bash
-git add CHANGELOG.md
+perl -pi -e 's{uses: PackmindHub/update-packmind-artifacts\@v[^\s]*}{uses: PackmindHub/update-packmind-artifacts\@{{version}}}g' README.md
+grep -n 'uses: PackmindHub/update-packmind-artifacts@' README.md
+```
+
+Every `uses: PackmindHub/update-packmind-artifacts@…` line must now end with `@{{version}}`; abort and ask the user if no line matched. Show the user `git diff CHANGELOG.md README.md` before committing.
+
+## 4. Commit, tag and push the release
+
+```bash
+git add CHANGELOG.md README.md
 git commit -m "[Chore] Prepare release"
 git tag -a {{version}} -m "{{version}}"
 git push origin main
@@ -48,7 +59,7 @@ git push origin {{version}}
 
 Use an annotated tag (existing release tags are annotated). Do not move the floating major tag (e.g. `v1`) unless the user asks for it.
 
-## 4. Reopen [Unreleased]
+## 5. Reopen [Unreleased]
 
 ```bash
 node .claude/skills/release-gha/scripts/changelog.mjs next {{version}}
@@ -74,7 +85,7 @@ This inserts, above the latest release:
 
 and adds `[Unreleased]: https://github.com/PackmindHub/update-packmind-artifacts/compare/{{version}}...HEAD` back to the link definitions.
 
-## 5. Commit and push the post-release change
+## 6. Commit and push the post-release change
 
 ```bash
 git add CHANGELOG.md
@@ -82,7 +93,7 @@ git commit -m "[Chore] Post release {{version}}"
 git push origin main
 ```
 
-## 6. Report
+## 7. Report
 
 Give the user:
 
