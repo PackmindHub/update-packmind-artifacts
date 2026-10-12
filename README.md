@@ -13,6 +13,11 @@ on:
   schedule:
     - cron: '0 2 * * 1-5' # Weeknights at 02:00 UTC
   workflow_dispatch:
+    inputs:
+      upgrade:
+        description: 'Upgrade installed Packmind packages to their latest versions'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -33,7 +38,14 @@ jobs:
         uses: PackmindHub/update-packmind-artifacts@v1
         with:
           packmind-api-key: ${{ secrets.PACKMIND_API_KEY }}
+          upgrade: ${{ inputs.upgrade || false }}
 ```
+
+### Upgrading packages
+
+By default, the action runs `packmind-cli install`, which renders the package versions already pinned in `packmind-lock.json`. Set `upgrade: true` to run `packmind-cli install --upgrade` instead, bumping installed packages to their latest versions (requires `@packmind/cli` >= 0.37.0).
+
+The example above keeps scheduled runs on pinned versions and lets you opt into an upgrade when triggering the workflow manually (**Run workflow** → check **Upgrade**). To always upgrade, pass `upgrade: true` directly.
 
 ### Self-hosted runners
 
@@ -47,6 +59,7 @@ The action invokes the GitHub CLI (`gh`) and `jq`. They are pre-installed on Git
 | `github-token`     | no       | `${{ github.token }}`                                    | Token used to push the working branch and open the pull request.                         |
 | `branch-name`      | no       | `packmind-cli-update`                                    | Working branch. Created if missing, otherwise reused and merged with the base branch.    |
 | `base-branch`      | no       | `main`                                                   | Base branch the pull request targets and that the working branch is merged from.         |
+| `upgrade`          | no       | `false`                                                  | When `true`, runs `packmind install --upgrade` to bump packages to latest versions.      |
 | `node-version`     | no       | `22.17.0`                                                | Node.js version installed before running `packmind`.                                     |
 | `commit-message`   | no       | `chore(packmind): nightly artifacts update`              | Commit message used when artifacts changed.                                              |
 | `pr-title`         | no       | _(falls back to `commit-message`)_                       | Title for the pull request when one is opened.                                           |
@@ -59,7 +72,7 @@ The action invokes the GitHub CLI (`gh`) and `jq`. They are pre-installed on Git
 | Name        | Description                                                                                  |
 |-------------|----------------------------------------------------------------------------------------------|
 | `changed`   | `"true"` if artifacts changed in this run, `"false"` otherwise.                              |
-| `pr-url`    | URL of the pull request associated with the working branch (newly created or already open). |
+| `pr-url`    | URL of the pull request associated with the working branch (newly created or already open).  |
 | `pr-number` | Number of the pull request associated with the working branch.                               |
 
 ## Required permissions
