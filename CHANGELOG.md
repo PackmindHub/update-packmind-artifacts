@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [v1.2.0] 2026-10-12
 
 ### Added
@@ -28,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release
 
+[Unreleased]: https://github.com/PackmindHub/update-packmind-artifacts/compare/v1.2.0...HEAD
 [v1.2.0]: https://github.com/PackmindHub/update-packmind-artifacts/compare/v1.0.1...v1.2.0
 [v1.0.1]: https://github.com/PackmindHub/update-packmind-artifacts/compare/v1.0.0...v1.0.1
 [v1.0.0]: https://github.com/PackmindHub/update-packmind-artifacts/commit/9c2aa860c80a31f49873814c3cb7718a54458fe5
